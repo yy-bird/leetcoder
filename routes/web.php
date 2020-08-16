@@ -21,8 +21,9 @@ use App\Rank;
 | contains the "web" middleware group. Now create something great!
 |
 */
-Route::get('/api', function(){
-    return "api";
+Route::get('/api/users', function(){
+    $users = User::all();
+    return $users->toJson();
 });
 
 Route::get('/api/user/{user_slug}/add', function($user_slug){
@@ -120,60 +121,56 @@ Route::get('/api/contest/{contest_id}/rank', function($contest){
     return $pages;
 });
 
-Route::get('/async/{page}', function ($page) {
-    $time_start = microtime(true);
-    $client = new Client();
-    $requests = function ($total) {
-        for ($i = 1; $i <= $total; $i++) {
-            yield new Request('GET', "https://leetcode.com/contest/api/ranking/weekly-contest-200/?pagination=$i&region=global");
-        }
-    };
-    $pool = new Pool($client, $requests($page), [
-        'concurrency' => 10,
-        'fulfilled' => function (Response $response, $index) {
-            $resp = json_decode($response->getBody(), true)["total_rank"];
-            foreach($resp as $r){
-                echo $r["rank"];
-                echo " ";
-            }
-            echo "<br />";
-        },
-        'rejected' => function (RequestException $reason, $index) {
-            // this is delivered each failed request
-            echo $reason;
-            echo "<br />";
-        },
-    ]);
-    $promise = $pool->promise();
-    $promise->wait();
+// Route::get('/async/{page}', function ($page) {
+//     $time_start = microtime(true);
+//     $client = new Client();
+//     $requests = function ($total) {
+//         for ($i = 1; $i <= $total; $i++) {
+//             yield new Request('GET', "https://leetcode.com/contest/api/ranking/weekly-contest-200/?pagination=$i&region=global");
+//         }
+//     };
+//     $pool = new Pool($client, $requests($page), [
+//         'concurrency' => 10,
+//         'fulfilled' => function (Response $response, $index) {
+//             $resp = json_decode($response->getBody(), true)["total_rank"];
+//             foreach($resp as $r){
+//                 echo $r["rank"];
+//                 echo " ";
+//             }
+//             echo "<br />";
+//         },
+//         'rejected' => function (RequestException $reason, $index) {
+//             // this is delivered each failed request
+//             echo $reason;
+//             echo "<br />";
+//         },
+//     ]);
+//     $promise = $pool->promise();
+//     $promise->wait();
 
-    $time_end = microtime(true);
-    $time = $time_end - $time_start;
-    return "Takes $time seconds";
-});
+//     $time_end = microtime(true);
+//     $time = $time_end - $time_start;
+//     return "Takes $time seconds";
+// });
 
-Route::get('/normal/{page}', function($page){
-    $time_start = microtime(true);
-    $client = new Client();
-    for ($x = 1; $x <= $page; $x++) {
-        $response = $client->get("https://leetcode.com/contest/api/ranking/weekly-contest-200/?pagination=$x&region=global");
-        $resp = json_decode($response->getBody(), true)["total_rank"];
-        foreach($resp as $r){
-            echo $r["rank"];
-            echo " ";
-        }
-        echo "<br />";
-    }
+// Route::get('/normal/{page}', function($page){
+//     $time_start = microtime(true);
+//     $client = new Client();
+//     for ($x = 1; $x <= $page; $x++) {
+//         $response = $client->get("https://leetcode.com/contest/api/ranking/weekly-contest-200/?pagination=$x&region=global");
+//         $resp = json_decode($response->getBody(), true)["total_rank"];
+//         foreach($resp as $r){
+//             echo $r["rank"];
+//             echo " ";
+//         }
+//         echo "<br />";
+//     }
 
-    $time_end = microtime(true);
-    $time = $time_end - $time_start;
-    return "Takes $time seconds";
-});
+//     $time_end = microtime(true);
+//     $time = $time_end - $time_start;
+//     return "Takes $time seconds";
+// });
 
 Route::get('/{path?}', function(){
     return view('index');
 });
-
-function getContest(){
-
-}
