@@ -22,6 +22,7 @@ class CreateUsersTable extends Migration
             $table->integer("rating");
             $table->integer("solved_questions");
             $table->integer("global_rank");
+            $table->integer("finished_contests");
             $table->timestamps();
         });
     }
