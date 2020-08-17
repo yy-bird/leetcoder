@@ -32,7 +32,7 @@ Route::get('/api/contests', function(){
 });
 
 Route::get('/api/ranks/{contest_id}', function($contest_id){
-    $ranks = Rank::where("contest_id", "=", $contest_id)->orderBy('rank', 'asc')->get();
+    $ranks = Rank::with('user')->where("contest_id", "=", $contest_id)->orderBy('rank', 'asc')->get();
     return $ranks->toJson();
 });
 
