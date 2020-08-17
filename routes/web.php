@@ -26,6 +26,11 @@ Route::get('/api/users', function(){
     return $users->toJson();
 });
 
+Route::get('/api/contests', function(){
+    $contests = Contest::all();
+    return $contests->toJson();
+});
+
 Route::get('/api/user/{user_slug}/add', function($user_slug){
     $client = new Client();
     $response = $client->get("https://leetcode.com/$user_slug/");
