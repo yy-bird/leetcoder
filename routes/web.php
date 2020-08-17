@@ -31,6 +31,11 @@ Route::get('/api/contests', function(){
     return $contests->toJson();
 });
 
+Route::get('/api/ranks/{contest_id}', function($contest_id){
+    $ranks = Rank::where("contest_id", "=", $contest_id)->orderBy('rank', 'asc')->get();
+    return $ranks->toJson();
+});
+
 Route::get('/api/user/{user_slug}/add', function($user_slug){
     $client = new Client();
     $response = $client->get("https://leetcode.com/$user_slug/");
