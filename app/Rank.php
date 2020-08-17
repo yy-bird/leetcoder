@@ -3,6 +3,8 @@
 namespace App;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Question;
+use App\Submission;
 
 class Rank extends Model
 {
@@ -18,4 +20,14 @@ class Rank extends Model
     {
         return $this->belongsTo('App\Contest');
     }
+
+    public function getQuestionsAttribute(){
+        return Question::where('contest_id', $this->contest_id)->get();
+    }
+
+    public function getSubmissionsAttribute(){
+        return Submission::where('contest_id', $this->contest_id)->where('user_id', $this->user_id)->get();
+    }
+
+    protected $appends = ['questions', 'submissions'];
 }

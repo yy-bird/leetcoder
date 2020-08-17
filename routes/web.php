@@ -10,6 +10,8 @@ use Illuminate\Support\Carbon;
 use App\User;
 use App\Contest;
 use App\Rank;
+use App\Question;
+use App\Submission;
 
 /*
 |--------------------------------------------------------------------------
@@ -81,10 +83,22 @@ Route::get('/api/contest/{contest_id}/rank', function($contest){
     }
 
     $response = $client->get("https://leetcode.com/contest/api/ranking/$contest->name_id/?pagination=1&region=global");
-    $resp = json_decode($response->getBody(), true)["user_num"];
-    $pages = ceil($resp/25);
-    $contest->user_count = $resp;
+    $resp = json_decode($response->getBody(), true);
+    $user_num = $resp["user_num"];
+    $questions = $resp["questions"];
+
+    $pages = ceil($user_num/25);
+    $contest->user_count = $user_num;
     $contest->save();
+
+    foreach($questions as $q){
+        $question = Question::firstOrNew(["question_id" => $q["question_id"]]);
+        $question->contest_id = $contest->id;
+        $question->credit = $q["credit"];
+        $question->title = $q["title"];
+        $question->title_slug = $q["title_slug"];
+        $question->save();
+    }
 
     $usermap = [];
     $users = User::all();
@@ -100,8 +114,11 @@ Route::get('/api/contest/{contest_id}/rank', function($contest){
     $pool = new Pool($client, $requests($pages), [
         'concurrency' => 10,
         'fulfilled' => function (Response $response, $index) use ($usermap, $contest){
-            $resp = json_decode($response->getBody(), true)["total_rank"];
-            foreach($resp as $r){
+            $resp = json_decode($response->getBody(), true);
+            $resp_ranks = $resp["total_rank"];
+            $resp_submissions = $resp["submissions"];
+            // $resp_questions = $resp["questions"];
+            foreach($resp_ranks as $idx=>$r){
                 if(array_key_exists($r["user_slug"],$usermap)){
                     $user = $usermap[$r["user_slug"]];
                     $rank = Rank::firstOrNew(["contest_id"=>$contest->id, "user_id"=>$user->id]);
@@ -116,6 +133,16 @@ Route::get('/api/contest/{contest_id}/rank', function($contest){
                     $rank->solved_questions = $user->solved_questions;
                     $rank->global_rank = $user->global_rank;
                     $rank->save();
+
+                    foreach($resp_submissions[$idx] as $key=>$val){
+                        $submission = Submission::firstOrNew(["submission_id"=>$val["submission_id"]]);
+                        $submission->question_id = $key;
+                        $submission->contest_id = $contest->id;
+                        $submission->user_id = $user->id;
+                        $submission->submit_time = Carbon::createFromTimestamp($val["date"]);
+                        $submission->fail_count = $val["fail_count"];
+                        $submission->save();
+                    }
                 }
             }
         },

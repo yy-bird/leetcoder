@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateSubmissionsTable extends Migration
+class CreateQuestionsTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,16 +13,15 @@ class CreateSubmissionsTable extends Migration
      */
     public function up()
     {
-        Schema::create('submissions', function (Blueprint $table) {
+        Schema::create('questions', function (Blueprint $table) {
             $table->charset = 'utf8mb4';
             $table->collation = 'utf8mb4_unicode_ci';
             $table->id();
-            $table->integer('submission_id');
-            $table->integer('question_id');
-            $table->integer('contest_id');
-            $table->integer('user_id');
-            $table->datetime('submit_time');
-            $table->integer('fail_count');
+            $table->integer("contest_id");
+            $table->integer("question_id");
+            $table->integer("credit");
+            $table->text("title");
+            $table->text("title_slug");
             $table->timestamps();
         });
     }
@@ -34,6 +33,6 @@ class CreateSubmissionsTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('submissions');
+        Schema::dropIfExists('questions');
     }
 }
